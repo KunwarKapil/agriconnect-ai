@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* Smooth transition when switching themes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
