@@ -24,6 +24,17 @@ function Dashboard() {
   });
   const [formErrors, setFormErrors] = useState({});
 
+  // Edit modal & form states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingFarmer, setEditingFarmer] = useState({
+    id: "",
+    name: "",
+    location: "",
+    contact: "",
+    farm_size_acres: "",
+  });
+  const [editFormErrors, setEditFormErrors] = useState({});
+
   // Helper to show auto-hiding toast messages
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
@@ -128,6 +139,79 @@ function Dashboard() {
     }
   };
 
+  // Handle Edit Click
+  const handleEditClick = (farmer) => {
+    setEditingFarmer({
+      id: farmer.id,
+      name: farmer.name,
+      location: farmer.location,
+      contact: farmer.contact,
+      farm_size_acres: farmer.farm_size_acres.toString(),
+    });
+    setEditFormErrors({});
+    setIsEditModalOpen(true);
+  };
+
+  // Handle Edit Input Changes
+  const handleEditInputChange = (field, value) => {
+    setEditingFarmer((prev) => ({ ...prev, [field]: value }));
+    if (editFormErrors[field]) {
+      setEditFormErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // Edit Form Validation
+  const validateEditForm = () => {
+    const errors = {};
+    if (!editingFarmer.name.trim()) errors.name = "Name is required.";
+    else if (editingFarmer.name.trim().length < 2) errors.name = "Name must be at least 2 characters.";
+
+    if (!editingFarmer.location.trim()) errors.location = "Location is required.";
+
+    if (!editingFarmer.contact.trim()) errors.contact = "Contact number is required.";
+    else if (editingFarmer.contact.trim().length < 10) errors.contact = "Contact must be at least 10 digits.";
+
+    const size = parseFloat(editingFarmer.farm_size_acres);
+    if (!editingFarmer.farm_size_acres) errors.farm_size_acres = "Farm size is required.";
+    else if (isNaN(size) || size <= 0) errors.farm_size_acres = "Farm size must be greater than 0.";
+
+    setEditFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Handle Edit Submit (PUT)
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateEditForm()) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${editingFarmer.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: editingFarmer.name,
+          location: editingFarmer.location,
+          contact: editingFarmer.contact,
+          farm_size_acres: parseFloat(editingFarmer.farm_size_acres),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to update farmer");
+      }
+
+      showToast("Farmer updated successfully!", "success");
+      setIsEditModalOpen(false);
+      // Refresh list
+      fetchFarmers(searchQuery);
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  };
+
   // Handle Delete (DELETE)
   const handleDeleteFarmer = async (id) => {
     if (!window.confirm("Are you sure you want to delete this farmer?")) return;
@@ -224,15 +308,27 @@ function Dashboard() {
                         </div>
                       </div>
                       
-                      <button
-                        onClick={() => handleDeleteFarmer(farmer.id)}
-                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors self-start"
-                        title="Delete Farmer"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex gap-2 self-start">
+                        <button
+                          onClick={() => handleEditClick(farmer)}
+                          className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                          title="Edit Farmer"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleDeleteFarmer(farmer.id)}
+                          className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          title="Delete Farmer"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -280,6 +376,47 @@ function Dashboard() {
           <div className="pt-2">
             <Button variant="primary" type="submit">
               Register
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Farmer Modal Form */}
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Farmer Details">
+        <form onSubmit={handleEditSubmit} className="space-y-4 mt-2">
+          <Input
+            label="Name"
+            placeholder="e.g. Rajesh Kumar"
+            value={editingFarmer.name}
+            onChange={(e) => handleEditInputChange("name", e.target.value)}
+            error={editFormErrors.name}
+          />
+          <Input
+            label="Location"
+            placeholder="e.g. Dehradun"
+            value={editingFarmer.location}
+            onChange={(e) => handleEditInputChange("location", e.target.value)}
+            error={editFormErrors.location}
+          />
+          <Input
+            label="Contact Number"
+            placeholder="e.g. 9876543210"
+            value={editingFarmer.contact}
+            onChange={(e) => handleEditInputChange("contact", e.target.value)}
+            error={editFormErrors.contact}
+          />
+          <Input
+            label="Farm Size (Acres)"
+            type="number"
+            placeholder="e.g. 4.5"
+            value={editingFarmer.farm_size_acres}
+            onChange={(e) => handleEditInputChange("farm_size_acres", e.target.value)}
+            error={editFormErrors.farm_size_acres}
+          />
+          
+          <div className="pt-2">
+            <Button variant="primary" type="submit">
+              Save Changes
             </Button>
           </div>
         </form>
