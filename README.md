@@ -1,96 +1,162 @@
-# AgriConnect AI – Smart Agriculture Management Platform
+# 🌾 AgriConnect AI – Smart Agriculture Management Platform
 
 ## Overview
 
-AgriConnect AI is an AI-powered web platform developed for farmers and agricultural cooperatives. It simplifies farm management by providing tools for farmer registration, crop management, weather monitoring, and AI-powered agricultural recommendations. The platform combines a modern React frontend with a FastAPI backend and integrates Google Gemini AI to deliver intelligent farming assistance.
+AgriConnect AI is a full-stack agriculture management platform developed as part of the **SIP 2026 AI-Assisted Full Stack Web Development Program**.
+
+The application helps farmers and agricultural organizations manage farmer records, crop information, and weather data through a modern web interface. It combines a React frontend with a FastAPI backend, MongoDB Atlas for persistent storage, and secure JWT-based authentication. The platform is designed to be scalable and will later integrate Google Gemini AI for intelligent farming recommendations.
 
 ---
 
-## Features
+# Features
 
-* Farmer Management System
-* Crop Management
-* Weather Monitoring
-* AI Farm Advisor
-* Crop Disease Detection & Prevention
-* Analytics Dashboard
-* Responsive User Interface
-* REST API Backend
+## Authentication & Security
 
----
-
-## Tech Stack
-
-### Frontend
-
-* React
-* Vite
-* Tailwind CSS
-* React Router
-
-### Backend
-
-* FastAPI
-* Uvicorn
-
-### Database
-
-* MongoDB Atlas (Integrated)
-
-### Authentication
-
-* JWT Authentication *(planned)*
-
-### AI
-
-* Google Gemini API *(planned)*
-
-### Deployment
-
-* Vercel (Frontend)
-* Render (Backend)
+- User Registration
+- User Login
+- JWT Authentication
+- Password Hashing using bcrypt
+- Protected Frontend Routes
+- Protected Backend APIs
+- Logout Functionality
+- Session Persistence using localStorage
 
 ---
 
-## Project Structure
+## Farmer Management
+
+- View Farmers
+- Add Farmer
+- Edit Farmer
+- Delete Farmer
+- Search Farmers
+- MongoDB Persistence
+
+---
+
+## Crop Management
+
+- View Crops
+- Add Crop
+- Edit Crop
+- Delete Crop
+- Search Crops
+
+---
+
+## Weather Monitoring
+
+- View Weather Records
+- Add Weather Record
+- Edit Weather Record
+- Delete Weather Record
+- Search Weather by Location
+
+---
+
+## Dashboard
+
+- Farmer Directory
+- Crop Management
+- Weather Monitoring
+- Responsive Design
+- Dark / Light Theme
+
+---
+
+## Future Features
+
+- AI Farm Advisor using Google Gemini
+- Crop Disease Detection & Prevention
+- Live Weather API Integration
+- Reports & Analytics
+- Role-Based Access Control
+- Google OAuth Authentication
+
+---
+
+# Tech Stack
+
+## Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- React Router
+- Axios
+
+## Backend
+
+- FastAPI
+- Python
+- Uvicorn
+
+## Database
+
+- MongoDB Atlas
+- PyMongo
+
+## Authentication
+
+- JWT (JSON Web Token)
+- bcrypt Password Hashing
+
+## Deployment
+
+- Vercel (Frontend)
+- Render (Backend)
+
+---
+
+# Project Structure
 
 ```text
 agriconnect-ai/
 │
 ├── frontend/
-│   ├── src/
 │   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── routes/
+│   │   └── App.jsx
 │   └── package.json
 │
 ├── backend/
-│   ├── routes/
-│   ├── models/
-│   ├── services/
 │   ├── database/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
 │   ├── main.py
-│   └── requirements.txt
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── .gitignore
 │
 └── README.md
 ```
 
 ---
 
-## Getting Started
+# Getting Started
 
-### Prerequisites
+## Prerequisites
 
-Make sure you have installed:
+Install the following software:
 
-* Python 3.11+
-* Node.js 18+
-* npm
-* Git
+- Python 3.11+
+- Node.js 18+
+- npm
+- Git
 
 ---
 
 # Backend Setup
 
-Navigate to the backend folder.
+Navigate to the backend directory.
 
 ```bash
 cd backend
@@ -102,21 +168,21 @@ Create a virtual environment.
 python -m venv venv
 ```
 
-Activate the virtual environment.
+Activate the environment.
 
-**Windows (PowerShell)**
+### Windows PowerShell
 
 ```bash
 .\venv\Scripts\Activate.ps1
 ```
 
-**Windows (CMD)**
+### Windows CMD
 
 ```bash
 venv\Scripts\activate
 ```
 
-**Linux / macOS**
+### Linux / macOS
 
 ```bash
 source venv/bin/activate
@@ -134,44 +200,17 @@ Run the FastAPI server.
 uvicorn main:app --reload
 ```
 
-Backend runs at
+Backend runs at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger Documentation
+Swagger Documentation:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
-
-## Database Setup & Configuration
-
-This project integrates with a remote **MongoDB Atlas** database cluster.
-
-### Setup Instructions
-1. Create a free cluster on MongoDB Atlas (M0 Shared Tier).
-2. Create a Database User with read and write access.
-3. Whitelist your IP address (or `0.0.0.0/0` for universal development access) under Network Access.
-4. Copy the connection string.
-5. Create a `.env` file in the `backend/` directory by copying `.env.example`:
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-6. Paste your MongoDB connection string as `MONGO_URI` and define `DATABASE_NAME=agriconnect_db`.
-
-### Database Choice Rationale
-For Week 5, we integrated **MongoDB Atlas** as the database:
-- **FastAPI / Python Compatibility**: Mongoose is a Node.js-only ODM. For a Python-based FastAPI backend, `pymongo` is the native and most optimized MongoDB library.
-- **Flexible Schema Structure**: Agricultural data (weather updates, crop yields, sensor profiles) is highly variable. Document-based collections perfectly match the dynamically generated mock structures.
-- **Pydantic Model Mapping**: PyMongo integrates seamlessly with Pydantic schemas (`FarmerResponse`, `CropResponse`), enabling robust data validation without the overhead of heavy ODM layers.
-- **Auto-Increment Counters**: Since the existing frontend and relationships relied on integer keys (IDs), we implemented an atomic auto-increment counter engine using a dedicated `counters` collection.
-
-## Database Schema Diagram
-Below is the visual representation of our database collections, fields, data types, and references:
-
-![Database Schema Diagram](./W5_SchemaDiagram_TBI-26100336.png)
 
 ---
 
@@ -195,7 +234,7 @@ Run the development server.
 npm run dev
 ```
 
-Frontend runs at
+Frontend runs at:
 
 ```text
 http://localhost:5173
@@ -203,50 +242,183 @@ http://localhost:5173
 
 ---
 
-## Available API Endpoints
+# Environment Variables
 
-| Method | Endpoint      | Description         |
-| ------ | ------------- | ------------------- |
-| GET    | /             | Home Endpoint       |    
-| GET    | /api/farmers/ | Get All Farmers     |
-| POST   | /api/farmers/ | Add Farmer          |
-| GET    | /api/crops/   | Get All Crops       |
-| POST   | /api/crops/   | Add Crop            |
-| GET    | /api/weather/ | Weather Information |
-| POST   | /api/ai/      | AI Farm Advisor     |
+Create a `.env` file inside the `backend` directory.
 
----
+Example:
 
-## Current Development Progress
-
-### Completed
-
-* React + Vite project setup
-* Tailwind CSS integration
-* Responsive UI components
-* Light/Dark Theme
-* Component Library
-* React Routing
-* FastAPI backend
-* Farmer API
-* Crop API
-* Weather API
-* AI API structure
-* Frontend–Backend integration
-* Dashboard consuming backend APIs
-* MongoDB Atlas Database Integration (Week 5 CRUD persistence)
-* Frontend "Edit Farmer Details" (Full CRUD integration)
-
-### In Progress
-
-* JWT Authentication
-* Google Gemini AI integration
-* Crop Disease Detection
-* Deployment
+```env
+MONGO_URI=your_mongodb_connection_string
+DATABASE_NAME=agriconnect_db
+JWT_SECRET=your_secret_key
+```
 
 ---
 
-## Author
+# Database Setup
+
+The project uses **MongoDB Atlas** as the primary cloud database.
+
+## Setup Steps
+
+1. Create a free MongoDB Atlas cluster.
+2. Create a Database User.
+3. Add your IP under Network Access.
+4. Copy the MongoDB connection string.
+5. Create a `.env` file.
+6. Configure the required environment variables.
+
+---
+
+# Database Collections
+
+- users
+- farmers
+- crops
+- weather
+- counters
+
+The `counters` collection is used to maintain auto-increment integer IDs.
+
+---
+
+# Database Schema Diagram
+
+![Database Schema](./W5_SchemaDiagram_TBI-26100336.png)
+
+---
+
+# Authentication Flow
+
+```text
+User Registration
+        │
+        ▼
+Password hashed using bcrypt
+        │
+        ▼
+Stored securely in MongoDB
+        │
+        ▼
+User Login
+        │
+        ▼
+JWT Generated
+        │
+        ▼
+Saved in localStorage
+        │
+        ▼
+Protected Routes Accessible
+        │
+        ▼
+Logout
+```
+
+---
+
+# Available API Endpoints
+
+## Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | Register User |
+| POST | /api/auth/login | User Login |
+
+---
+
+## Farmers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/farmers | Get All Farmers |
+| POST | /api/farmers | Add Farmer |
+| PUT | /api/farmers/{id} | Update Farmer |
+| DELETE | /api/farmers/{id} | Delete Farmer |
+| GET | /api/farmers/search | Search Farmers |
+
+---
+
+## Crops
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/crops | Get All Crops |
+| POST | /api/crops | Add Crop |
+| PUT | /api/crops/{id} | Update Crop |
+| DELETE | /api/crops/{id} | Delete Crop |
+| GET | /api/crops/search | Search Crops |
+
+---
+
+## Weather
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/weather | Get Weather Records |
+| POST | /api/weather | Add Weather Record |
+| PUT | /api/weather/{id} | Update Weather Record |
+| DELETE | /api/weather/{id} | Delete Weather Record |
+| GET | /api/weather/search | Search Weather |
+
+---
+
+# Screenshots
+
+> Add screenshots of the application here.
+
+- Home Page
+- Login Page
+- Dashboard
+- Farmer Management
+- Crop Management
+- Weather Monitoring
+
+---
+
+# Current Development Progress
+
+## ✅ Completed (Week 1 – Week 6)
+
+- React + Vite Project Setup
+- Tailwind CSS Integration
+- Responsive User Interface
+- Component Library
+- React Router
+- Dark / Light Theme
+- FastAPI Backend
+- Farmer CRUD Module
+- Crop CRUD Module
+- Weather CRUD Module
+- Dashboard
+- Frontend–Backend Integration
+- MongoDB Atlas Integration
+- Persistent CRUD Operations
+- User Registration
+- User Login
+- Password Hashing using bcrypt
+- JWT Authentication
+- Protected Frontend Routes
+- Protected Backend APIs
+- Logout Functionality
+
+---
+
+## 🚧 Upcoming Features
+
+- AI Farm Advisor (Google Gemini)
+- Crop Disease Detection
+- Live Weather API Integration
+- Analytics Dashboard
+- Role-Based Access Control
+- Google OAuth Authentication
+- Deployment to Vercel & Render
+
+---
+
+# Developer
 
 **Kunwar Kapil Singh Karki**
 
@@ -258,6 +430,6 @@ SIP 2026 – AI-Assisted Full Stack Web Development
 
 ---
 
-## License
+# License
 
-This project is developed for educational purposes as part of the SIP 2026 Internship Program.
+This project is developed for educational purposes as part of the **SIP 2026 Internship Program**.

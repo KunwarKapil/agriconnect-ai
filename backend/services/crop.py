@@ -2,7 +2,6 @@ from fastapi import HTTPException, status
 from typing import List, Dict, Any
 from database.connection import db
 from models.crop import CropCreate, CropUpdate
-from services.farmer import get_farmer_by_id  # Import to validate farmer existence
 
 def get_all_crops() -> List[Dict[str, Any]]:
     """Retrieves all crops from the database."""
@@ -18,19 +17,8 @@ def get_crop_by_id(crop_id: int) -> Dict[str, Any]:
         )
     return crop
 
-def get_crops_by_farmer(farmer_id: int) -> List[Dict[str, Any]]:
-    """Retrieves all crops associated with a specific farmer. Validates farmer existence first."""
-    # Ensure farmer exists
-    get_farmer_by_id(farmer_id)
-    
-    all_crops = db.crops.find()
-    return [crop for crop in all_crops if crop["farmer_id"] == farmer_id]
-
 def create_crop(crop_data: CropCreate) -> Dict[str, Any]:
-    """Creates a new crop record. Validates that the farmer exists first."""
-    # Validate farmer exists before creating crop
-    get_farmer_by_id(crop_data.farmer_id)
-    
+    """Creates a new crop record."""
     crop_dict = crop_data.model_dump()
     return db.crops.insert_one(crop_dict)
 
@@ -65,3 +53,13 @@ def delete_crop(crop_id: int) -> None:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete crop record"
         )
+
+def search_crops_by_name(crop_name: str) -> List[Dict[str, Any]]:
+    """Filters crops by crop_name containing the query string (case-insensitive)."""
+    all_crops = db.crops.find()
+    # Case-insensitive partial match
+    filtered_crops = [
+        crop for crop in all_crops
+        if crop_name.lower() in crop.get("crop_name", "").lower()
+    ]
+    return filtered_crops

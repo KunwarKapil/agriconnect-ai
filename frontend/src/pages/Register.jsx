@@ -5,11 +5,17 @@ import Footer from "../components/Footer";
 import { Button, Input, Toast } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 
-function Login() {
-  const { login } = useAuth();
+function Register() {
+  const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "Farmer",
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -30,6 +36,12 @@ function Login() {
 
   const validate = () => {
     const newErrors = {};
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full Name is required.";
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = "Full Name must be at least 2 characters.";
+    }
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required.";
     } else {
@@ -41,6 +53,14 @@ function Login() {
 
     if (!formData.password) {
       newErrors.password = "Password is required.";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirm Password is required.";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
     }
 
     setErrors(newErrors);
@@ -51,14 +71,15 @@ function Login() {
     e.preventDefault();
     if (!validate()) return;
 
-    setLoading(false);
+    setLoading(true);
     try {
-      setLoading(true);
-      await login(formData.email, formData.password);
-      showToast("Logged in successfully!", "success");
-      navigate("/dashboard");
+      await register(formData.fullName, formData.email, formData.password, formData.confirmPassword);
+      showToast("Registered successfully! Redirecting to login...", "success");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
-      showToast(err.message || "Invalid credentials.", "error");
+      showToast(err.message || "Registration failed.", "error");
     } finally {
       setLoading(false);
     }
@@ -72,14 +93,22 @@ function Login() {
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-green-700 dark:text-green-500">
-              Sign In
+              Create Account
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Access your agriculture management portal
+              Register for AgriConnect AI platform
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Full Name"
+              placeholder="e.g. Rajesh Kumar"
+              value={formData.fullName}
+              onChange={(e) => handleInputChange("fullName", e.target.value)}
+              error={errors.fullName}
+            />
+
             <Input
               label="Email Address"
               placeholder="e.g. rajesh@example.com"
@@ -88,6 +117,18 @@ function Login() {
               onChange={(e) => handleInputChange("email", e.target.value)}
               error={errors.email}
             />
+
+            <div className="flex flex-col gap-2">
+              <label className="block text-inherit">Role</label>
+              <select
+                value={formData.role}
+                onChange={(e) => handleInputChange("role", e.target.value)}
+                className="border p-2 rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+              >
+                <option value="Farmer">Farmer (Default)</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
 
             <Input
               label="Password"
@@ -98,17 +139,26 @@ function Login() {
               error={errors.password}
             />
 
+            <Input
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+              error={errors.confirmPassword}
+            />
+
             <div className="pt-2">
               <Button variant="primary" type="submit" disabled={loading}>
-                {loading ? "Signing in..." : "Login"}
+                {loading ? "Registering..." : "Register"}
               </Button>
             </div>
           </form>
 
           <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-green-700 dark:text-green-500 hover:underline font-semibold">
-              Register Here
+            Already have an account?{" "}
+            <Link to="/login" className="text-green-700 dark:text-green-500 hover:underline font-semibold">
+              Login Here
             </Link>
           </div>
         </div>
@@ -120,4 +170,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;

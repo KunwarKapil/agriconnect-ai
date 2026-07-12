@@ -1,429 +1,304 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Loader, Toast, Button, Input, Modal } from "../components/ui";
+import { Loader, Button } from "../components/ui";
 
 function Dashboard() {
-  const [farmers, setFarmers] = useState([]);
+  const [counts, setCounts] = useState({ farmers: 0, crops: 0, weather: 0 });
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
-  // Toast state
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  
-  // Search query state
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  // Modal & form states
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newFarmer, setNewFarmer] = useState({
-    name: "",
-    location: "",
-    contact: "",
-    farm_size_acres: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
 
-  // Edit modal & form states
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingFarmer, setEditingFarmer] = useState({
-    id: "",
-    name: "",
-    location: "",
-    contact: "",
-    farm_size_acres: "",
-  });
-  const [editFormErrors, setEditFormErrors] = useState({});
-
-  // Helper to show auto-hiding toast messages
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 3000);
-  };
-
-  // Fetch farmers (handles search if query is present)
-  const fetchFarmers = async (query = "") => {
-    setLoading(true);
-    setError("");
-    try {
-      const url = query.trim()
-        ? `http://127.0.0.1:8000/api/farmers/search?name=${encodeURIComponent(query)}`
-        : `http://127.0.0.1:8000/api/farmers/`;
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Failed to fetch farmers data from server");
-      }
-      const data = await response.json();
-      setFarmers(data);
-    } catch (err) {
-      setError(err.message);
-      showToast(err.message, "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Debounced/realtime search effect
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchFarmers(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
-
-  // Handle Input Changes in Registration Form
-  const handleInputChange = (field, value) => {
-    setNewFarmer((prev) => ({ ...prev, [field]: value }));
-    // Clear validation error if any when user types
-    if (formErrors[field]) {
-      setFormErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  // Form Validation
-  const validateForm = () => {
-    const errors = {};
-    if (!newFarmer.name.trim()) errors.name = "Name is required.";
-    else if (newFarmer.name.trim().length < 2) errors.name = "Name must be at least 2 characters.";
-
-    if (!newFarmer.location.trim()) errors.location = "Location is required.";
-
-    if (!newFarmer.contact.trim()) errors.contact = "Contact number is required.";
-    else if (newFarmer.contact.trim().length < 10) errors.contact = "Contact must be at least 10 digits.";
-
-    const size = parseFloat(newFarmer.farm_size_acres);
-    if (!newFarmer.farm_size_acres) errors.farm_size_acres = "Farm size is required.";
-    else if (isNaN(size) || size <= 0) errors.farm_size_acres = "Farm size must be greater than 0.";
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // Handle Registration Submit (POST)
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/farmers/", {
-        method: "POST",
-        headers: {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("access_token");
+        const headers = {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newFarmer.name,
-          location: newFarmer.location,
-          contact: newFarmer.contact,
-          farm_size_acres: parseFloat(newFarmer.farm_size_acres),
-        }),
-      });
+          "Authorization": `Bearer ${token}`,
+        };
+        const [farmersRes, cropsRes, weatherRes] = await Promise.all([
+          fetch("http://127.0.0.1:8000/api/farmers/", { headers }),
+          fetch("http://127.0.0.1:8000/api/crops/", { headers }),
+          fetch("http://127.0.0.1:8000/api/weather/", { headers }),
+        ]);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to register farmer");
+        if (!farmersRes.ok || !cropsRes.ok || !weatherRes.ok) {
+          throw new Error("Failed to fetch dashboard data from server");
+        }
+
+        const [farmersData, cropsData, weatherData] = await Promise.all([
+          farmersRes.json(),
+          cropsRes.json(),
+          weatherRes.json(),
+        ]);
+
+        setCounts({
+          farmers: farmersData.length,
+          crops: cropsData.length,
+          weather: weatherData.length,
+        });
+
+        // Construct dynamic recent activities
+        const activities = [];
+        
+        // Sort items by ID descending to get the most recent
+        const latestFarmers = [...farmersData].sort((a, b) => b.id - a.id).slice(0, 2);
+        const latestCrops = [...cropsData].sort((a, b) => b.id - a.id).slice(0, 2);
+        const latestWeather = [...weatherData].sort((a, b) => b.id - a.id).slice(0, 2);
+
+        latestFarmers.forEach((f) => {
+          activities.push({
+            id: `farmer-${f.id}`,
+            type: "farmer",
+            icon: "👤",
+            text: `Registered Farmer: ${f.name} (${f.location})`,
+            detail: `Farm Size: ${f.farm_size_acres} Acres`,
+            color: "border-green-500",
+          });
+        });
+
+        latestCrops.forEach((c) => {
+          activities.push({
+            id: `crop-${c.id}`,
+            type: "crop",
+            icon: "🌱",
+            text: `Planted Crop: ${c.crop_name} (${c.crop_type})`,
+            detail: `Status: ${c.status} | Area: ${c.area_in_acres} Acres`,
+            color: "border-emerald-500",
+          });
+        });
+
+        latestWeather.forEach((w) => {
+          activities.push({
+            id: `weather-${w.id}`,
+            type: "weather",
+            icon: "☀️",
+            text: `Weather Record: ${w.location} - ${w.weather_condition}`,
+            detail: `Temp: ${w.temperature}°C | Humidity: ${w.humidity}%`,
+            color: "border-blue-500",
+          });
+        });
+
+        setRecentActivity(activities);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      showToast("Farmer registered successfully!", "success");
-      setIsModalOpen(false);
-      // Reset form
-      setNewFarmer({ name: "", location: "", contact: "", farm_size_acres: "" });
-      setFormErrors({});
-      // Refresh list
-      fetchFarmers(searchQuery);
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  };
-
-  // Handle Edit Click
-  const handleEditClick = (farmer) => {
-    setEditingFarmer({
-      id: farmer.id,
-      name: farmer.name,
-      location: farmer.location,
-      contact: farmer.contact,
-      farm_size_acres: farmer.farm_size_acres.toString(),
-    });
-    setEditFormErrors({});
-    setIsEditModalOpen(true);
-  };
-
-  // Handle Edit Input Changes
-  const handleEditInputChange = (field, value) => {
-    setEditingFarmer((prev) => ({ ...prev, [field]: value }));
-    if (editFormErrors[field]) {
-      setEditFormErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  // Edit Form Validation
-  const validateEditForm = () => {
-    const errors = {};
-    if (!editingFarmer.name.trim()) errors.name = "Name is required.";
-    else if (editingFarmer.name.trim().length < 2) errors.name = "Name must be at least 2 characters.";
-
-    if (!editingFarmer.location.trim()) errors.location = "Location is required.";
-
-    if (!editingFarmer.contact.trim()) errors.contact = "Contact number is required.";
-    else if (editingFarmer.contact.trim().length < 10) errors.contact = "Contact must be at least 10 digits.";
-
-    const size = parseFloat(editingFarmer.farm_size_acres);
-    if (!editingFarmer.farm_size_acres) errors.farm_size_acres = "Farm size is required.";
-    else if (isNaN(size) || size <= 0) errors.farm_size_acres = "Farm size must be greater than 0.";
-
-    setEditFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  // Handle Edit Submit (PUT)
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateEditForm()) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${editingFarmer.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: editingFarmer.name,
-          location: editingFarmer.location,
-          contact: editingFarmer.contact,
-          farm_size_acres: parseFloat(editingFarmer.farm_size_acres),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to update farmer");
-      }
-
-      showToast("Farmer updated successfully!", "success");
-      setIsEditModalOpen(false);
-      // Refresh list
-      fetchFarmers(searchQuery);
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  };
-
-  // Handle Delete (DELETE)
-  const handleDeleteFarmer = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this farmer?")) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete farmer record");
-      }
-
-      showToast("Farmer deleted successfully!", "success");
-      // Refresh list
-      fetchFarmers(searchQuery);
-    } catch (err) {
-      showToast(err.message, "error");
-    }
-  };
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
       <Navbar />
 
-      <main className="flex-grow max-w-5xl w-full mx-auto p-6 md:p-8">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-green-700 dark:text-green-500">
-              Farmer Directory
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Manage platform farmers and agricultural regions.
-            </p>
-          </div>
-          <div>
-            <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-              Register Farmer
-            </Button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
+      <main className="flex-grow max-w-6xl w-full mx-auto p-6 md:p-8">
+        {/* Welcome Section */}
         <div className="mb-8">
-          <Input
-            placeholder="Search farmers by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <h1 className="text-4xl font-bold tracking-tight text-green-700 dark:text-green-500">
+            AgriConnect AI Dashboard
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+            Welcome back! Manage crop cultivation, monitor weather conditions, and review farmer directories from your central command panel.
+          </p>
         </div>
 
-        {/* Dynamic Loading indicator */}
+        {/* Loader/Error Handling */}
         {loading && (
-          <div className="my-12">
+          <div className="my-16">
             <Loader />
           </div>
         )}
 
-        {/* Farmer Grid */}
-        {!loading && (
+        {error && (
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 p-4 rounded-xl text-red-700 dark:text-red-400 mb-8">
+            <p className="font-semibold">Error loading dashboard metrics:</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
           <>
-            {farmers.length === 0 ? (
-              <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
-                <p className="text-lg text-gray-500 dark:text-gray-400">
-                  {searchQuery ? "No farmers match your search." : "No registered farmers found."}
-                </p>
+            {/* Stats Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              {/* Farmers Summary */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    Total Farmers
+                  </span>
+                  <span className="text-2xl">👤</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gray-800 dark:text-gray-100">
+                    {counts.farmers}
+                  </span>
+                  <span className="text-sm text-green-600 font-medium">Registered</span>
+                </div>
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-6">
-                {farmers.map((farmer) => (
-                  <div
-                    key={farmer.id}
-                    className="border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow relative group"
+
+              {/* Crops Summary */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    Crops Monitored
+                  </span>
+                  <span className="text-2xl">🌱</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gray-800 dark:text-gray-100">
+                    {counts.crops}
+                  </span>
+                  <span className="text-sm text-emerald-600 font-medium">Active Crops</span>
+                </div>
+              </div>
+
+              {/* Weather Summary */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    Weather Records
+                  </span>
+                  <span className="text-2xl">☀️</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-gray-800 dark:text-gray-100">
+                    {counts.weather}
+                  </span>
+                  <span className="text-sm text-blue-600 font-medium">Locations</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Navigation & Recent Activities Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Quick Navigation Cards */}
+              <div className="lg:col-span-2 space-y-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                  Quick Actions & Navigation
+                </h2>
+                
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {/* Farmer Directory Link */}
+                  <Link 
+                    to="/farmers"
+                    className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 hover:border-green-500 dark:hover:border-green-600 rounded-xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-                          {farmer.name}
-                        </h2>
-                        <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
-                          <p>
-                            <span className="font-medium text-gray-400">ID:</span> #{farmer.id}
+                    <div>
+                      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform origin-left">🧑‍🌾</div>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-green-600 dark:group-hover:text-green-500 transition-colors">
+                        Farmer Directory
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Manage platform farmers, regions, contacts, and active crop sizes.
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center text-sm font-semibold text-green-700 dark:text-green-500">
+                      Go to Directory &rarr;
+                    </div>
+                  </Link>
+
+                  {/* Crop Management Link */}
+                  <Link 
+                    to="/crops"
+                    className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 hover:border-emerald-500 dark:hover:border-emerald-600 rounded-xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform origin-left">🌾</div>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
+                        Crop Management
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Track active seeds, seasons, planting dates, and growth lifecycles.
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center text-sm font-semibold text-emerald-700 dark:text-emerald-500">
+                      Manage Crops &rarr;
+                    </div>
+                  </Link>
+
+                  {/* Weather Monitoring Link */}
+                  <Link 
+                    to="/weather"
+                    className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-600 rounded-xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform origin-left">🌦️</div>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors">
+                        Weather Monitoring
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Observe temperatures, humidity, wind patterns, and rainfall reports.
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center text-sm font-semibold text-blue-700 dark:text-blue-500">
+                      View Weather &rarr;
+                    </div>
+                  </Link>
+
+                  {/* AI Advisor - Locked */}
+                  <div className="bg-gray-100 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800/80 rounded-xl p-6 shadow-none flex flex-col justify-between opacity-70 cursor-not-allowed">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div className="text-3xl mb-4">🤖</div>
+                        <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-2 py-0.5 rounded-full">
+                          Coming Soon
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-500 dark:text-gray-400 mb-2">
+                        AI Farm Advisor
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Leverage Gemini AI model configurations for smart recommendation advice.
+                      </p>
+                    </div>
+                    <div className="mt-6 text-sm font-semibold text-gray-400">
+                      Locked &bull; Offline
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity Timeline */}
+              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
+                  Recent Activity
+                </h2>
+                {recentActivity.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No activity recorded yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivity.map((activity) => (
+                      <div
+                        key={activity.id}
+                        className={`flex gap-3 p-3 border-l-4 ${activity.color} bg-gray-50 dark:bg-gray-900/40 rounded-r-lg`}
+                      >
+                        <div className="text-xl shrink-0">{activity.icon}</div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                            {activity.text}
                           </p>
-                          <p>
-                            <span className="font-medium text-gray-400">Location:</span> {farmer.location}
-                          </p>
-                          <p>
-                            <span className="font-medium text-gray-400">Contact:</span> {farmer.contact}
-                          </p>
-                          <p>
-                            <span className="font-medium text-gray-400">Farm Size:</span> {farmer.farm_size_acres} Acres
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {activity.detail}
                           </p>
                         </div>
                       </div>
-                      
-                      <div className="flex gap-2 self-start">
-                        <button
-                          onClick={() => handleEditClick(farmer)}
-                          className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-                          title="Edit Farmer"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-                        
-                        <button
-                          onClick={() => handleDeleteFarmer(farmer.id)}
-                          className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                          title="Delete Farmer"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
+            </div>
           </>
         )}
       </main>
 
       <Footer />
-
-      {/* Registration Modal Form */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Register New Farmer">
-        <form onSubmit={handleRegisterSubmit} className="space-y-4 mt-2">
-          <Input
-            label="Name"
-            placeholder="e.g. Rajesh Kumar"
-            value={newFarmer.name}
-            onChange={(e) => handleInputChange("name", e.target.value)}
-            error={formErrors.name}
-          />
-          <Input
-            label="Location"
-            placeholder="e.g. Dehradun"
-            value={newFarmer.location}
-            onChange={(e) => handleInputChange("location", e.target.value)}
-            error={formErrors.location}
-          />
-          <Input
-            label="Contact Number"
-            placeholder="e.g. 9876543210"
-            value={newFarmer.contact}
-            onChange={(e) => handleInputChange("contact", e.target.value)}
-            error={formErrors.contact}
-          />
-          <Input
-            label="Farm Size (Acres)"
-            type="number"
-            placeholder="e.g. 4.5"
-            value={newFarmer.farm_size_acres}
-            onChange={(e) => handleInputChange("farm_size_acres", e.target.value)}
-            error={formErrors.farm_size_acres}
-          />
-          
-          <div className="pt-2">
-            <Button variant="primary" type="submit">
-              Register
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit Farmer Modal Form */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Farmer Details">
-        <form onSubmit={handleEditSubmit} className="space-y-4 mt-2">
-          <Input
-            label="Name"
-            placeholder="e.g. Rajesh Kumar"
-            value={editingFarmer.name}
-            onChange={(e) => handleEditInputChange("name", e.target.value)}
-            error={editFormErrors.name}
-          />
-          <Input
-            label="Location"
-            placeholder="e.g. Dehradun"
-            value={editingFarmer.location}
-            onChange={(e) => handleEditInputChange("location", e.target.value)}
-            error={editFormErrors.location}
-          />
-          <Input
-            label="Contact Number"
-            placeholder="e.g. 9876543210"
-            value={editingFarmer.contact}
-            onChange={(e) => handleEditInputChange("contact", e.target.value)}
-            error={editFormErrors.contact}
-          />
-          <Input
-            label="Farm Size (Acres)"
-            type="number"
-            placeholder="e.g. 4.5"
-            value={editingFarmer.farm_size_acres}
-            onChange={(e) => handleEditInputChange("farm_size_acres", e.target.value)}
-            error={editFormErrors.farm_size_acres}
-          />
-          
-          <div className="pt-2">
-            <Button variant="primary" type="submit">
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Notification Toast */}
-      {toast.show && <Toast message={toast.message} />}
     </div>
   );
 }

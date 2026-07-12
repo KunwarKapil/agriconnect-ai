@@ -74,14 +74,14 @@ class Database:
     def __init__(self):
         self.farmers = MongoCollectionWrapper("farmers")
         self.crops = MongoCollectionWrapper("crops")
-        # We can keep weather mock as is, or use collections
         self.weather = MongoCollectionWrapper("weather")
+        self.users = MongoCollectionWrapper("users")
 
 # Initialize database instance
 db = Database()
 
 def seed_database():
-    """Seeds the database with default farmers and crops if they don't exist."""
+    """Seeds the database with default farmers, crops, and weather records if they don't exist."""
     try:
         # Check if farmers is empty
         if db.farmers.collection.count_documents({}) == 0:
@@ -106,28 +106,75 @@ def seed_database():
             db.farmers.counters.update_one({"_id": "farmers"}, {"$set": {"seq": 2}}, upsert=True)
             print("Default farmers seeded successfully.")
 
-        # Check if crops is empty
-        if db.crops.collection.count_documents({}) == 0:
+        # Check if crops has old schema or is empty
+        has_old_crops = db.crops.collection.find_one({"name": {"$exists": True}}) is not None
+        if has_old_crops or db.crops.collection.count_documents({}) == 0:
             print("Seeding database with default crops...")
+            db.crops.collection.delete_many({})
             seed_crops = [
                 {
                     "id": 1,
-                    "farmer_id": 1,
-                    "name": "Wheat",
+                    "crop_name": "Wheat",
+                    "crop_type": "Cereal",
                     "season": "Rabi",
-                    "expected_yield_kg": 1200.0
+                    "planting_date": "2026-11-15",
+                    "expected_harvest_date": "2026-04-10",
+                    "area_in_acres": 4.5,
+                    "status": "Growing"
                 },
                 {
                     "id": 2,
-                    "farmer_id": 2,
-                    "name": "Rice",
+                    "crop_name": "Rice",
+                    "crop_type": "Cereal",
                     "season": "Kharif",
-                    "expected_yield_kg": 2000.0
+                    "planting_date": "2026-06-20",
+                    "expected_harvest_date": "2026-10-30",
+                    "area_in_acres": 5.0,
+                    "status": "Harvested"
                 }
             ]
             db.crops.collection.insert_many(seed_crops)
             db.crops.counters.update_one({"_id": "crops"}, {"$set": {"seq": 2}}, upsert=True)
             print("Default crops seeded successfully.")
+
+        # Check if weather is empty
+        if db.weather.collection.count_documents({}) == 0:
+            print("Seeding database with default weather records...")
+            seed_weather = [
+                {
+                    "id": 1,
+                    "location": "Dehradun",
+                    "temperature": 28.5,
+                    "humidity": 80.0,
+                    "rainfall": 12.4,
+                    "wind_speed": 15.0,
+                    "weather_condition": "Rainy",
+                    "forecast_date": "2026-07-11"
+                },
+                {
+                    "id": 2,
+                    "location": "Haridwar",
+                    "temperature": 32.0,
+                    "humidity": 65.0,
+                    "rainfall": 0.0,
+                    "wind_speed": 10.5,
+                    "weather_condition": "Cloudy",
+                    "forecast_date": "2026-07-11"
+                },
+                {
+                    "id": 3,
+                    "location": "Delhi",
+                    "temperature": 38.0,
+                    "humidity": 45.0,
+                    "rainfall": 0.0,
+                    "wind_speed": 18.0,
+                    "weather_condition": "Sunny",
+                    "forecast_date": "2026-07-11"
+                }
+            ]
+            db.weather.collection.insert_many(seed_weather)
+            db.weather.counters.update_one({"_id": "weather"}, {"$set": {"seq": 3}}, upsert=True)
+            print("Default weather records seeded successfully.")
     except Exception as e:
         print(f"Error seeding database: {e}")
 
