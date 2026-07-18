@@ -236,7 +236,7 @@ function AIAdvisor() {
             {advice && !loading && (
               <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-end">
                 <span className="text-xs text-purple-600 dark:text-purple-400 font-semibold px-2.5 py-1 bg-purple-50 dark:bg-purple-950/30 rounded-full border border-purple-200 dark:border-purple-800/30">
-                  Powered by Gemini 1.5 Flash
+                  Powered by Gemini 3.5 Flash
                 </span>
               </div>
             )}

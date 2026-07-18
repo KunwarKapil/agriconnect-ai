@@ -66,7 +66,7 @@ The application helps farmers and agricultural organizations manage farmer recor
 
 ## AI Farm Advisor (Week 7 Integration)
 
-- Secure backend-mediated consulting of Google Gemini API
+- Secure backend-mediated consulting of Google Gemini API (upgraded to Gemini 3.5 Flash)
 - Fully integrated with local state parameters (Crop, Problem, Soil, Temp, Humidity, and Notes)
 - Automatic loading state displays using the app's custom loader spinner
 - Custom-rendered Markdown suggestions for problem causes, recommended treatments, fertilizers, and irrigation
@@ -263,6 +263,7 @@ MONGO_URI=your_mongodb_connection_string
 DATABASE_NAME=agriconnect_db
 JWT_SECRET=your_secret_key
 GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash
 ```
 
 ---
@@ -422,7 +423,7 @@ Logout
 - Protected Frontend Routes
 - Protected Backend APIs
 - Logout Functionality
-- Google Gemini AI Farm Advisor Integration (Week 7)
+- Google Gemini 3.5 Flash AI Farm Advisor Integration (Week 7)
 
 ---
 

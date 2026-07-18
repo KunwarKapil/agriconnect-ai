@@ -57,7 +57,7 @@ def get_ai_advice(request: AdvisorRequest, response: Response):
         f"Constraints: Respond in clean Markdown. Keep the total word count strictly between 200 and 300 words. Do not include unnecessary conversational filler."
     )
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"
     
     headers = {
         "Content-Type": "application/json"
