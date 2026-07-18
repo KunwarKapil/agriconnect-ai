@@ -124,4 +124,4 @@ def get_ai_advice(request: AdvisorRequest, response: Response):
         return {
             "success": False,
             "message": f"An unexpected error occurred: {str(e)}"
-        }
+        }
