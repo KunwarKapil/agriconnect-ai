@@ -242,26 +242,24 @@ function Dashboard() {
                     </div>
                   </Link>
 
-                  {/* AI Advisor - Locked */}
-                  <div className="bg-gray-100 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800/80 rounded-xl p-6 shadow-none flex flex-col justify-between opacity-70 cursor-not-allowed">
+                  {/* AI Advisor */}
+                  <Link 
+                    to="/ai-advisor"
+                    className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 hover:border-purple-500 dark:hover:border-purple-600 rounded-xl p-6 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  >
                     <div>
-                      <div className="flex justify-between items-start">
-                        <div className="text-3xl mb-4">🤖</div>
-                        <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-2 py-0.5 rounded-full">
-                          Coming Soon
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-500 dark:text-gray-400 mb-2">
+                      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform origin-left">🤖</div>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-500 transition-colors">
                         AI Farm Advisor
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Leverage Gemini AI model configurations for smart recommendation advice.
                       </p>
                     </div>
-                    <div className="mt-6 text-sm font-semibold text-gray-400">
-                      Locked &bull; Offline
+                    <div className="mt-6 flex items-center text-sm font-semibold text-purple-700 dark:text-purple-500">
+                      Consult AI &rarr;
                     </div>
-                  </div>
+                  </Link>
                 </div>
               </div>
 

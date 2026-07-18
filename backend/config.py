@@ -11,5 +11,6 @@ class Settings:
     MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "agriconnect_db")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "default_secret_key_change_me")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
 settings = Settings()

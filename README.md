@@ -64,6 +64,16 @@ The application helps farmers and agricultural organizations manage farmer recor
 
 ---
 
+## AI Farm Advisor (Week 7 Integration)
+
+- Secure backend-mediated consulting of Google Gemini API
+- Fully integrated with local state parameters (Crop, Problem, Soil, Temp, Humidity, and Notes)
+- Automatic loading state displays using the app's custom loader spinner
+- Custom-rendered Markdown suggestions for problem causes, recommended treatments, fertilizers, and irrigation
+- Robust error toasts for missing API keys, rate limits, and network errors
+
+---
+
 ## Future Features
 
 - AI Farm Advisor using Google Gemini
@@ -252,6 +262,7 @@ Example:
 MONGO_URI=your_mongodb_connection_string
 DATABASE_NAME=agriconnect_db
 JWT_SECRET=your_secret_key
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ---
@@ -365,6 +376,14 @@ Logout
 
 ---
 
+## AI Advisor
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/ai/advisor | Generate AI advice for crops based on observations |
+
+---
+
 # Screenshots
 
 > Add screenshots of the application here.
@@ -380,7 +399,7 @@ Logout
 
 # Current Development Progress
 
-## ✅ Completed (Week 1 – Week 6)
+## ✅ Completed (Week 1 – Week 7)
 
 - React + Vite Project Setup
 - Tailwind CSS Integration
@@ -403,12 +422,12 @@ Logout
 - Protected Frontend Routes
 - Protected Backend APIs
 - Logout Functionality
+- Google Gemini AI Farm Advisor Integration (Week 7)
 
 ---
 
 ## 🚧 Upcoming Features
 
-- AI Farm Advisor (Google Gemini)
 - Crop Disease Detection
 - Live Weather API Integration
 - Analytics Dashboard

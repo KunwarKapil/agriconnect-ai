@@ -11,6 +11,7 @@ import ComponentsDemo from "./pages/ComponentsDemo";
 import Farmers from "./pages/Farmers";
 import Crops from "./pages/Crops";
 import Weather from "./pages/Weather";
+import AIAdvisor from "./pages/AIAdvisor";
 
 function App() {
   return (
@@ -53,6 +54,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Weather />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/ai-advisor" 
+            element={
+              <ProtectedRoute>
+                <AIAdvisor />
               </ProtectedRoute>
             } 
           />
