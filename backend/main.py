@@ -34,10 +34,28 @@ def home():
         "message": "Welcome to AgriConnect AI Backend"
     }
 
+from database.connection import client
+
 @app.get("/health")
 def health():
     return {
         "status": "healthy",
+        "environment": settings.ENVIRONMENT
+    }
+
+@app.get("/api/system/status")
+def system_status():
+    db_status = "connected"
+    try:
+        client.admin.command("ping")
+    except Exception:
+        db_status = "degraded"
+        
+    return {
+        "status": "online",
+        "database": db_status,
+        "ai_engine": "operational" if settings.GEMINI_API_KEY else "unconfigured",
+        "weather_service": "operational" if settings.OPENWEATHER_API_KEY else "unconfigured",
         "environment": settings.ENVIRONMENT
     }
 

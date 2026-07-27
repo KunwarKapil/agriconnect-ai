@@ -14,6 +14,7 @@ class AdvisorRequest(BaseModel):
     soil: Optional[str] = None
     temperature: Optional[str] = None
     humidity: Optional[str] = None
+    weather_condition: Optional[str] = None
     notes: Optional[str] = None
 
 @router.get("/")
@@ -35,6 +36,7 @@ def get_ai_advice(request: AdvisorRequest, response: Response):
     soil_info = f"- Soil Type: {request.soil}" if request.soil else ""
     temp_info = f"- Temperature: {request.temperature}°C" if request.temperature else ""
     hum_info = f"- Humidity: {request.humidity}%" if request.humidity else ""
+    weather_info = f"- Weather Condition: {request.weather_condition}" if request.weather_condition else ""
     notes_info = f"- Additional Notes: {request.notes}" if request.notes else ""
     
     prompt = (
@@ -45,16 +47,18 @@ def get_ai_advice(request: AdvisorRequest, response: Response):
         f"{soil_info}\n"
         f"{temp_info}\n"
         f"{hum_info}\n"
+        f"{weather_info}\n"
         f"{notes_info}\n\n"
-        f"Please analyze this issue and generate a structured response containing these exact sections:\n"
-        f"1. Problem Analysis: A clear analysis of what is happening with the crop.\n"
-        f"2. Possible Causes: Explain the most likely underlying causes (e.g., pests, disease, nutrient deficiencies, or environmental factors).\n"
-        f"3. Recommended Actions: Detailed step-by-step treatment or immediate actions.\n"
-        f"4. Fertilizer Suggestions: Recommendations for specific fertilizers, organic options, or nutrients.\n"
-        f"5. Prevention Tips: Strategies, irrigation advice, or crop care methods to prevent future recurrence.\n"
-        f"6. Disclaimer: A standard brief agricultural disclaimer that advice is for informational purposes.\n\n"
+        f"Please analyze this issue taking into account the crop type, problem, live temperature, humidity, and weather condition.\n"
+        f"Generate a structured response using markdown headings '## Section Name' for these exact 6 sections:\n"
+        f"## Problem Analysis\n(A clear analysis of what is happening with the crop)\n"
+        f"## Possible Causes\n(Explain likely underlying causes such as pests, disease, nutrient deficiencies, or environmental/weather factors)\n"
+        f"## Treatment\n(Detailed step-by-step immediate treatment actions)\n"
+        f"## Fertilizer Suggestion\n(Recommendations for specific fertilizers, organic options, or nutrients)\n"
+        f"## Prevention\n(Strategies, irrigation advice, or crop care methods to prevent future recurrence)\n"
+        f"## Disclaimer\n(Standard brief agricultural disclaimer that advice is for informational purposes)\n\n"
         f"Tone: Professional, supportive, clear, and easy for farmers to understand.\n"
-        f"Constraints: Respond in clean Markdown. Keep the total word count strictly between 200 and 300 words. Do not include unnecessary conversational filler."
+        f"Constraints: Respond strictly in Markdown. Keep total length concise and well-structured."
     )
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={settings.GEMINI_API_KEY}"

@@ -13,10 +13,13 @@ import Crops from "./pages/Crops";
 import Weather from "./pages/Weather";
 import AIAdvisor from "./pages/AIAdvisor";
 
+import ErrorBoundary from "./components/ErrorBoundary";
+
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -65,9 +68,12 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          {/* Catch-all 404 Fallback Route */}
+          <Route path="*" element={<Home />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </ErrorBoundary>
   );
 }
 

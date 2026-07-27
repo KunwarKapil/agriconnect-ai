@@ -4,7 +4,7 @@
 
 AgriConnect AI is a full-stack agriculture management platform developed as part of the **SIP 2026 AI-Assisted Full Stack Web Development Program**.
 
-The application helps farmers and agricultural organizations manage farmer records, crop information, and weather data through a modern web interface. It combines a React frontend with a FastAPI backend, MongoDB Atlas for persistent storage, and secure JWT-based authentication. The platform is designed to be scalable and will later integrate Google Gemini AI for intelligent farming recommendations.
+The application helps farmers and agricultural organizations manage farmer directories, crop lifecycles, and weather metrics through a modern web interface. It combines a React frontend with a FastAPI backend, MongoDB Atlas for cloud persistence, secure JWT authentication, Google Gemini AI for intelligent crop advisory, and OpenWeather API for real-time meteorological insights.
 
 ---
 
@@ -12,76 +12,70 @@ The application helps farmers and agricultural organizations manage farmer recor
 
 ## Authentication & Security
 
-- User Registration
-- User Login
-- JWT Authentication
+- User Registration & Login with JWT Tokens
 - Password Hashing using bcrypt
-- Protected Frontend Routes
-- Protected Backend APIs
-- Logout Functionality
-- Session Persistence using localStorage
+- Protected Frontend Routes (`ProtectedRoute`)
+- Protected Backend APIs with `Depends(verify_token)`
+- Session Persistence in localStorage
+- React `ErrorBoundary` component to prevent white screen crashes
 
 ---
 
 ## Farmer Management
 
-- View Farmers
-- Add Farmer
-- Edit Farmer
-- Delete Farmer
-- Search Farmers
-- MongoDB Persistence
+- View Farmers Directory
+- Add / Register Farmer with input validation
+- Edit Farmer details
+- Custom Delete Confirmation Modal (`ConfirmDialog`)
+- Case-insensitive Farmers Search
+- MongoDB Atlas Persistence
+- Modern Empty State handling
 
 ---
 
 ## Crop Management
 
-- View Crops
-- Add Crop
-- Edit Crop
-- Delete Crop
-- Search Crops
+- View Crops Directory
+- Add / Register Crop with season, schedule, and area validation
+- Edit Crop details & status badges (Planted, Growing, Ready for Harvest, Harvested)
+- Custom Delete Confirmation Modal (`ConfirmDialog`)
+- Case-insensitive Crops Search
+- Modern Empty State handling
 
 ---
 
-## Weather Monitoring
+## Weather Monitoring & Live OpenWeather Integration
 
-- View Weather Records
-- Add Weather Record
-- Edit Weather Record
-- Delete Weather Record
-- Search Weather by Location
-
----
-
-## Dashboard
-
-- Farmer Directory
-- Crop Management
-- Weather Monitoring
-- Responsive Design
-- Dark / Light Theme
+- **Live Weather Feature**: Real-time OpenWeather metrics via FastAPI proxy (`/api/weather/live`)
+  - Displays: Current Temp, Feels Like, Humidity, Pressure, Wind Speed, Visibility, Cloud %, Weather Condition, Icon, City, Country, and Timestamp
+- **Weather CRUD Records**: Manual regional meteorological record tracking (Create, Read, Update, Delete)
+- Custom Delete Confirmation Modal (`ConfirmDialog`)
+- Search records by location name
 
 ---
 
-## AI Farm Advisor (Week 7 Integration)
+## Production Dashboard
 
-- Secure backend-mediated consulting of Google Gemini API (upgraded to Gemini 3.5 Flash)
-- Fully integrated with local state parameters (Crop, Problem, Soil, Temp, Humidity, and Notes)
-- Automatic loading state displays using the app's custom loader spinner
-- Custom-rendered Markdown suggestions for problem causes, recommended treatments, fertilizers, and irrigation
-- Robust error toasts for missing API keys, rate limits, and network errors
+- Modern responsive card layout
+- Real-Time Summary Statistics (Farmers, Crops, Weather Locations, AI Model status)
+- **Live OpenWeather Widget**: Live meteorological metrics with city switcher
+- **System Health Monitor**: Real-time backend status, MongoDB connection ping, AI engine state, and OpenWeather status (`/api/system/status`)
+- **Quick AI Advisor Launcher** & **Recent System Activity Feed**
 
 ---
 
-## Future Features
+## Enhanced AI Farm Advisor (Gemini AI + Live Weather)
 
-- AI Farm Advisor using Google Gemini
-- Crop Disease Detection & Prevention
-- Live Weather API Integration
-- Reports & Analytics
-- Role-Based Access Control
-- Google OAuth Authentication
+- Google Gemini 3.5 Flash Integration with live weather context
+- **Auto-Fill Live Weather**: One-click sync populates temperature, humidity, and weather condition directly into diagnostic form
+- Structured 6-Section Diagnostic Report rendering:
+  1. **Problem Analysis**
+  2. **Possible Causes**
+  3. **Treatment & Immediate Actions**
+  4. **Fertilizer & Nutrient Suggestions**
+  5. **Prevention Tips & Care**
+  6. **Agricultural Disclaimer**
+- Animated loading indicators & error handling toasts
 
 ---
 
@@ -89,243 +83,110 @@ The application helps farmers and agricultural organizations manage farmer recor
 
 ## Frontend
 
-- React
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
+- **React** (v18+)
+- **Vite** (Build Tool)
+- **Tailwind CSS** (Styling System)
+- **React Router DOM** (Client-side Routing)
+- **Axios & Fetch API** (HTTP Client)
 
 ## Backend
 
-- FastAPI
-- Python
-- Uvicorn
+- **FastAPI** (Python Asynchronous Web Framework)
+- **Uvicorn** (ASGI Server)
+- **PyMongo** (MongoDB Driver)
+- **PyJWT & bcrypt** (Security)
 
 ## Database
 
-- MongoDB Atlas
-- PyMongo
+- **MongoDB Atlas** (Cloud NoSQL Database)
 
-## Authentication
+## AI & Third-Party APIs
 
-- JWT (JSON Web Token)
-- bcrypt Password Hashing
-
-## Deployment
-
-- Vercel (Frontend)
-- Render (Backend)
+- **Google Gemini 3.5 Flash API** (Generative AI Diagnostics)
+- **OpenWeather API** (Real-Time Meteorological Data)
 
 ---
 
-# Project Structure
+# Comprehensive Project Structure
 
 ```text
 agriconnect-ai/
 │
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── routes/
-│   │   └── App.jsx
-│   └── package.json
+├── backend/                             # FastAPI Python Backend Application
+│   ├── database/                        # Database Connection & Seed Layer
+│   │   └── connection.py                # PyMongo MongoDB Atlas Client & Auto-Seeding
+│   ├── middleware/                      # Security & Auth Middleware
+│   │   └── auth.py                      # JWT Bearer Token Verification Middleware
+│   ├── models/                          # Pydantic Schemas & Data Models
+│   │   ├── user.py                      # User Authentication Schemas
+│   │   ├── farmer.py                    # Farmer Directory Schemas
+│   │   ├── crop.py                      # Crop Management Schemas
+│   │   └── weather.py                   # Weather Record Schemas
+│   ├── routes/                          # FastAPI Router Endpoints
+│   │   ├── ai.py                        # Gemini AI Advisor Endpoints
+│   │   ├── auth.py                      # User Registration & Login Endpoints
+│   │   ├── crops.py                     # Crop CRUD & Search Endpoints
+│   │   ├── farmers.py                   # Farmer CRUD & Search Endpoints
+│   │   └── weather.py                   # Live OpenWeather & Weather CRUD Endpoints
+│   ├── services/                        # Business Logic & Database Service Layer
+│   │   ├── auth.py                      # Auth & Password Hashing Logic
+│   │   ├── crop.py                      # Crop Database Operations
+│   │   ├── farmer.py                    # Farmer Database Operations
+│   │   └── weather.py                   # Weather Database Operations
+│   ├── utils/                           # Helper Utilities
+│   │   └── security.py                  # JWT Token Generation & bcrypt Hashing
+│   ├── .env                             # Environment Variables (Secrets)
+│   ├── .env.example                     # Environment Variables Template
+│   ├── .gitignore                       # Backend Git Ignore Rules
+│   ├── config.py                        # Application Settings & Configuration
+│   ├── main.py                          # FastAPI App Entrypoint & CORS Rules
+│   └── requirements.txt                 # Python Dependencies Specification
 │
-├── backend/
-│   ├── database/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── utils/
-│   ├── main.py
-│   ├── requirements.txt
-│   ├── .env.example
-│   └── .gitignore
+├── frontend/                            # React + Vite Client Application
+│   ├── public/                          # Static Assets & Public Files
+│   ├── src/                             # Application Source Code
+│   │   ├── components/                  # Shared Component Library
+│   │   │   ├── ui/                      # Reusable UI Primitives
+│   │   │   │   ├── Button.jsx           # Button with Loading Spinner Support
+│   │   │   │   ├── Card.jsx             # Card Wrapper Component
+│   │   │   │   ├── ConfirmDialog.jsx    # Custom Delete Confirmation Modal
+│   │   │   │   ├── EmptyState.jsx       # Reusable Empty State Illustration View
+│   │   │   │   ├── Input.jsx            # Form Input Field with Validation
+│   │   │   │   ├── Loader.jsx           # Animated Loading Spinner Component
+│   │   │   │   ├── Modal.jsx            # Modal Dialog Container
+│   │   │   │   ├── ThemeToggle.jsx      # Dark/Light Theme Toggle Switch
+│   │   │   │   ├── Toast.jsx            # Notification Toast (Success/Error/Info)
+│   │   │   │   └── index.js             # UI Component Barrel Exports
+│   │   │   ├── ErrorBoundary.jsx        # React Fallback Error Boundary
+│   │   │   ├── Footer.jsx               # Application Footer Component
+│   │   │   ├── Hero.jsx                 # Landing Page Hero Section
+│   │   │   ├── Navbar.jsx               # Top Navigation Bar & User Actions
+│   │   │   └── ProtectedRoute.jsx       # Route Guard checking JWT Auth
+│   │   ├── context/                     # React Context Providers
+│   │   │   ├── AuthContext.jsx          # Auth State & Token Management
+│   │   │   └── ThemeContext.jsx         # Dark/Light Theme Context
+│   │   ├── pages/                       # Application Views & Pages
+│   │   │   ├── AIAdvisor.jsx            # Weather-Aware Gemini AI Advisor Page
+│   │   │   ├── About.jsx                # About Platform Page
+│   │   │   ├── ComponentsDemo.jsx       # UI Component Showcase Demo
+│   │   │   ├── Crops.jsx                # Crop Management Page (CRUD)
+│   │   │   ├── Dashboard.jsx            # Production Command Center Dashboard
+│   │   │   ├── Farmers.jsx              # Farmer Directory Page (CRUD)
+│   │   │   ├── Home.jsx                 # Landing Home Page
+│   │   │   ├── Login.jsx                # User Login Page
+│   │   │   ├── Register.jsx             # User Registration Page
+│   │   │   └── Weather.jsx              # Weather Page (Live + Manual CRUD)
+│   │   ├── App.css                      # App Utility Styles
+│   │   ├── App.jsx                      # Main Router & Error Boundary Setup
+│   │   ├── index.css                    # Tailwind CSS Base & Theme Directives
+│   │   └── main.jsx                     # React Client Entrypoint
+│   ├── eslint.config.js                 # ESLint Linting Configuration
+│   ├── index.html                       # HTML Template
+│   ├── package.json                     # Frontend Node Dependencies
+│   ├── tailwind.config.js               # Tailwind Custom Configuration
+│   └── vite.config.js                   # Vite Bundler Settings
 │
-└── README.md
-```
-
----
-
-# Getting Started
-
-## Prerequisites
-
-Install the following software:
-
-- Python 3.11+
-- Node.js 18+
-- npm
-- Git
-
----
-
-# Backend Setup
-
-Navigate to the backend directory.
-
-```bash
-cd backend
-```
-
-Create a virtual environment.
-
-```bash
-python -m venv venv
-```
-
-Activate the environment.
-
-### Windows PowerShell
-
-```bash
-.\venv\Scripts\Activate.ps1
-```
-
-### Windows CMD
-
-```bash
-venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-source venv/bin/activate
-```
-
-Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the FastAPI server.
-
-```bash
-uvicorn main:app --reload
-```
-
-Backend runs at:
-
-```text
-http://127.0.0.1:8000
-```
-
-Swagger Documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# Frontend Setup
-
-Open another terminal.
-
-```bash
-cd frontend
-```
-
-Install dependencies.
-
-```bash
-npm install
-```
-
-Run the development server.
-
-```bash
-npm run dev
-```
-
-Frontend runs at:
-
-```text
-http://localhost:5173
-```
-
----
-
-# Environment Variables
-
-Create a `.env` file inside the `backend` directory.
-
-Example:
-
-```env
-MONGO_URI=your_mongodb_connection_string
-DATABASE_NAME=agriconnect_db
-JWT_SECRET=your_secret_key
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-3.5-flash
-```
-
----
-
-# Database Setup
-
-The project uses **MongoDB Atlas** as the primary cloud database.
-
-## Setup Steps
-
-1. Create a free MongoDB Atlas cluster.
-2. Create a Database User.
-3. Add your IP under Network Access.
-4. Copy the MongoDB connection string.
-5. Create a `.env` file.
-6. Configure the required environment variables.
-
----
-
-# Database Collections
-
-- users
-- farmers
-- crops
-- weather
-- counters
-
-The `counters` collection is used to maintain auto-increment integer IDs.
-
----
-
-# Database Schema Diagram
-
-![Database Schema](./W5_SchemaDiagram_TBI-26100336.png)
-
----
-
-# Authentication Flow
-
-```text
-User Registration
-        │
-        ▼
-Password hashed using bcrypt
-        │
-        ▼
-Stored securely in MongoDB
-        │
-        ▼
-User Login
-        │
-        ▼
-JWT Generated
-        │
-        ▼
-Saved in localStorage
-        │
-        ▼
-Protected Routes Accessible
-        │
-        ▼
-Logout
+└── README.md                            # Comprehensive Platform Documentation
 ```
 
 ---
@@ -336,120 +197,127 @@ Logout
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | /api/auth/register | Register User |
-| POST | /api/auth/login | User Login |
-
----
+| POST | /api/auth/register | Register User Account |
+| POST | /api/auth/login | Authenticate User & Obtain JWT |
 
 ## Farmers
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /api/farmers | Get All Farmers |
-| POST | /api/farmers | Add Farmer |
-| PUT | /api/farmers/{id} | Update Farmer |
-| DELETE | /api/farmers/{id} | Delete Farmer |
-| GET | /api/farmers/search | Search Farmers |
-
----
+| POST | /api/farmers | Add Farmer Record |
+| PUT | /api/farmers/{id} | Update Farmer Record |
+| DELETE | /api/farmers/{id} | Delete Farmer Record |
+| GET | /api/farmers/search | Search Farmers by Name |
 
 ## Crops
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /api/crops | Get All Crops |
-| POST | /api/crops | Add Crop |
-| PUT | /api/crops/{id} | Update Crop |
-| DELETE | /api/crops/{id} | Delete Crop |
-| GET | /api/crops/search | Search Crops |
+| POST | /api/crops | Register New Crop |
+| PUT | /api/crops/{id} | Update Crop Record |
+| DELETE | /api/crops/{id} | Delete Crop Record |
+| GET | /api/crops/search | Search Crops by Name |
 
----
-
-## Weather
+## Weather & Live OpenWeather API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/weather | Get Weather Records |
-| POST | /api/weather | Add Weather Record |
+| GET | /api/weather/live | Fetch Real-Time OpenWeather Metrics (`city`) |
+| GET | /api/weather | Get Manual Weather Records |
+| POST | /api/weather | Create Weather Record |
 | PUT | /api/weather/{id} | Update Weather Record |
 | DELETE | /api/weather/{id} | Delete Weather Record |
-| GET | /api/weather/search | Search Weather |
+| GET | /api/weather/search | Search Weather Records by Location |
 
----
-
-## AI Advisor
+## AI Advisor & System Health
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | /api/ai/advisor | Generate AI advice for crops based on observations |
+| POST | /api/ai/advisor | Weather-Aware Gemini Crop Advisor |
+| GET | /api/system/status | System Health & MongoDB Status |
 
 ---
 
-# Screenshots
+# Getting Started
 
-> Add screenshots of the application here.
+## Prerequisites
 
-- Home Page
-- Login Page
-- Dashboard
-- Farmer Management
-- Crop Management
-- Weather Monitoring
+- Python 3.11+
+- Node.js 18+
+- MongoDB Atlas Cluster
+- Google Gemini API Key
+- OpenWeather API Key
+
+---
+
+## 1. Backend Setup
+
+```bash
+cd backend
+
+# Create & activate virtual environment
+python -m venv venv
+.\venv\Scripts\Activate.ps1  # Windows PowerShell
+
+# Install requirements
+pip install -r requirements.txt
+
+# Start backend server
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+FastAPI server runs at `http://127.0.0.1:8000`.  
+Swagger Docs at `http://127.0.0.1:8000/docs`.
+
+---
+
+## 2. Frontend Setup
+
+```bash
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Start Vite dev server
+npm run dev
+```
+
+Frontend application runs at `http://localhost:5173`.
 
 ---
 
 # Current Development Progress
 
-## ✅ Completed (Week 1 – Week 7)
+## ✅ Completed (Weeks 1 – 8)
 
-- React + Vite Project Setup
-- Tailwind CSS Integration
-- Responsive User Interface
-- Component Library
-- React Router
-- Dark / Light Theme
-- FastAPI Backend
-- Farmer CRUD Module
-- Crop CRUD Module
-- Weather CRUD Module
-- Dashboard
-- Frontend–Backend Integration
-- MongoDB Atlas Integration
-- Persistent CRUD Operations
-- User Registration
-- User Login
-- Password Hashing using bcrypt
-- JWT Authentication
-- Protected Frontend Routes
-- Protected Backend APIs
-- Logout Functionality
-- Google Gemini 3.5 Flash AI Farm Advisor Integration (Week 7)
-
----
-
-## 🚧 Upcoming Features
-
-- Crop Disease Detection
-- Live Weather API Integration
-- Analytics Dashboard
-- Role-Based Access Control
-- Google OAuth Authentication
-- Deployment to Vercel & Render
+- React + Vite Setup & Tailwind CSS Design System
+- FastAPI Backend Architecture & PyMongo Connection Layer
+- MongoDB Atlas Persistent Cloud Storage & Auto-Increment Counters
+- JWT Token Authentication & Protected Client Routes
+- **Week 8 Accomplishments**:
+  - Live OpenWeather API Integration (`/api/weather/live`)
+  - Weather-Aware Google Gemini AI Advisor
+  - Production Dashboard & Live System Health Monitor (`/api/system/status`)
+  - React `ErrorBoundary` Component
+  - Custom `ConfirmDialog` Modal Component
+  - Reusable `EmptyState` Component
+  - Submit Button Loading Spinners & Toast Variants
+  - Responsive Layout verified across 375px, 768px, 1440px
 
 ---
 
 # Developer
 
-**Kunwar Kapil Singh Karki**
-
-B.Tech Computer Science
-
-Graphic Era Hill University
-
-SIP 2026 – AI-Assisted Full Stack Web Development
+**Kunwar Kapil Singh Karki**  
+B.Tech Computer Science  
+Graphic Era Hill University  
+SIP 2026 – AI-Assisted Full Stack Web Development Program  
 
 ---
 
 # License
 
-This project is developed for educational purposes as part of the **SIP 2026 Internship Program**.
+This project is developed for educational and internship demonstration purposes as part of the **SIP 2026 Internship Program**.
