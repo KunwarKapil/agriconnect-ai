@@ -17,12 +17,14 @@ app = FastAPI(
 )
 
 # CORS Configuration
+\
 app.add_middleware(
     CORSMiddleware,
-allow_origins=[
-    "http://localhost:5173",
-    "https://agriconnect-ai-gamma.vercel.app",
-],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://agriconnect-ai-gamma.vercel.app",
+        "https://agriconnect-ddt1p1ee6-kunwarkapils-projects.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
