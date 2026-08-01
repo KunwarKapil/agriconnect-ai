@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Loader, Toast, Button, Input, Modal, ConfirmDialog, EmptyState } from "../components/ui";
+import { API_BASE_URL } from "../config";
 
 function Weather() {
   const [weatherRecords, setWeatherRecords] = useState([]);
@@ -63,7 +64,7 @@ function Weather() {
     setLiveLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`http://127.0.0.1:8000/api/weather/live?city=${encodeURIComponent(city)}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -85,8 +86,8 @@ function Weather() {
     setLoading(true);
     try {
       const url = query.trim()
-        ? `http://127.0.0.1:8000/api/weather/search?location=${encodeURIComponent(query)}`
-        : `http://127.0.0.1:8000/api/weather/`;
+        ? `${API_BASE_URL}/api/weather/search?location=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/api/weather/`;
 
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
@@ -172,7 +173,7 @@ function Weather() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/api/weather/", {
+      const response = await fetch(`${API_BASE_URL}/api/weather/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -244,7 +245,7 @@ function Weather() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/weather/${editingWeather.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/weather/${editingWeather.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -288,7 +289,7 @@ function Weather() {
     setDeleteDialog((prev) => ({ ...prev, loading: true }));
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/weather/${deleteDialog.recordId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/weather/${deleteDialog.recordId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

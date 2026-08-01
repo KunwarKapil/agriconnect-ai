@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Loader, Toast, Button, Input, EmptyState } from "../components/ui";
+import { API_BASE_URL } from "../config";
 
 function AIAdvisor() {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ function AIAdvisor() {
     setFetchingWeather(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch("http://127.0.0.1:8000/api/weather/live?city=Dehradun", {
+      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=Dehradun`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -127,7 +128,7 @@ function AIAdvisor() {
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/api/ai/advisor", {
+      const response = await fetch(`${API_BASE_URL}/api/ai/advisor`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

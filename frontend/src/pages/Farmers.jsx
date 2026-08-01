@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Loader, Toast, Button, Input, Modal, ConfirmDialog, EmptyState } from "../components/ui";
+import { API_BASE_URL } from "../config";
 
 function Farmers() {
   const [farmers, setFarmers] = useState([]);
@@ -51,8 +52,8 @@ function Farmers() {
     setLoading(true);
     try {
       const url = query.trim()
-        ? `http://127.0.0.1:8000/api/farmers/search?name=${encodeURIComponent(query)}`
-        : `http://127.0.0.1:8000/api/farmers/`;
+        ? `${API_BASE_URL}/api/farmers/search?name=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/api/farmers/`;
 
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
@@ -115,7 +116,7 @@ function Farmers() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/api/farmers/", {
+      const response = await fetch(`${API_BASE_URL}/api/farmers/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,7 +192,7 @@ function Farmers() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${editingFarmer.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/farmers/${editingFarmer.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -231,7 +232,7 @@ function Farmers() {
     setDeleteDialog((prev) => ({ ...prev, loading: true }));
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/farmers/${deleteDialog.farmerId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/farmers/${deleteDialog.farmerId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

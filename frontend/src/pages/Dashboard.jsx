@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Loader, Button, Toast } from "../components/ui";
+import { API_BASE_URL } from "../config";
 
 function Dashboard() {
   const [counts, setCounts] = useState({ farmers: 0, crops: 0, weather: 0 });
@@ -24,7 +25,7 @@ function Dashboard() {
     setWeatherLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`http://127.0.0.1:8000/api/weather/live?city=${encodeURIComponent(city)}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -48,10 +49,10 @@ function Dashboard() {
       };
 
       const [farmersRes, cropsRes, weatherRes, statusRes] = await Promise.all([
-        fetch("http://127.0.0.1:8000/api/farmers/", { headers }),
-        fetch("http://127.0.0.1:8000/api/crops/", { headers }),
-        fetch("http://127.0.0.1:8000/api/weather/", { headers }),
-        fetch("http://127.0.0.1:8000/api/system/status", { headers }),
+        fetch(`${API_BASE_URL}/api/farmers/`, { headers }),
+        fetch(`${API_BASE_URL}/api/crops/`, { headers }),
+        fetch(`${API_BASE_URL}/api/weather/`, { headers }),
+        fetch(`${API_BASE_URL}/api/system/status`, { headers }),
       ]);
 
       if (!farmersRes.ok || !cropsRes.ok || !weatherRes.ok) {

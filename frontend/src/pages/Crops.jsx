@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Loader, Toast, Button, Input, Modal, ConfirmDialog, EmptyState } from "../components/ui";
+import { API_BASE_URL } from "../config";
 
 function Crops() {
   const [crops, setCrops] = useState([]);
@@ -57,8 +58,8 @@ function Crops() {
     setLoading(true);
     try {
       const url = query.trim()
-        ? `http://127.0.0.1:8000/api/crops/search?name=${encodeURIComponent(query)}`
-        : `http://127.0.0.1:8000/api/crops/`;
+        ? `${API_BASE_URL}/api/crops/search?name=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/api/crops/`;
 
       const token = localStorage.getItem("access_token");
       const response = await fetch(url, {
@@ -126,7 +127,7 @@ function Crops() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("http://127.0.0.1:8000/api/crops/", {
+      const response = await fetch(`${API_BASE_URL}/api/crops/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -193,7 +194,7 @@ function Crops() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/crops/${editingCrop.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/crops/${editingCrop.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -236,7 +237,7 @@ function Crops() {
     setDeleteDialog((prev) => ({ ...prev, loading: true }));
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch(`http://127.0.0.1:8000/api/crops/${deleteDialog.cropId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/crops/${deleteDialog.cropId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
