@@ -9,6 +9,7 @@ class CropBase(BaseModel):
     expected_harvest_date: str = Field(..., description="Expected harvest date in YYYY-MM-DD format")
     area_in_acres: float = Field(..., gt=0, description="Farm area in acres (must be greater than 0)")
     status: Literal["Planted", "Growing", "Ready for Harvest", "Harvested"] = Field(..., description="Status of the crop")
+    farmer_id: int = Field(..., description="ID of the farmer associated with this crop")
 
 class CropCreate(CropBase):
     pass
@@ -21,9 +22,12 @@ class CropUpdate(BaseModel):
     expected_harvest_date: Optional[str] = Field(None)
     area_in_acres: Optional[float] = Field(None, gt=0)
     status: Optional[Literal["Planted", "Growing", "Ready for Harvest", "Harvested"]] = Field(None)
+    farmer_id: Optional[int] = Field(None, description="ID of the associated farmer")
 
 class CropResponse(CropBase):
     id: int
+    farmer_id: Optional[int] = None
+    farmer_name: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -7,7 +7,10 @@ import { API_BASE_URL } from "../config";
 
 function Dashboard() {
   const [counts, setCounts] = useState({ farmers: 0, crops: 0, weather: 0 });
+  const [farmersList, setFarmersList] = useState([]);
+  const [cropsList, setCropsList] = useState([]);
   const [liveWeather, setLiveWeather] = useState(null);
+  const [weatherSearchInput, setWeatherSearchInput] = useState("");
   const [systemStatus, setSystemStatus] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,22 +25,37 @@ function Dashboard() {
   };
 
   const fetchLiveWeather = useCallback(async (city = "Dehradun") => {
+    if (!city || !city.trim()) {
+      showToast("Please enter a city name to search.", "error");
+      return;
+    }
     setWeatherLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city)}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city.trim())}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        const data = await res.json();
-        setLiveWeather(data);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to fetch live weather data.");
       }
+      const data = await res.json();
+      setLiveWeather(data);
     } catch (err) {
-      console.error("Live weather fetch error:", err);
+      showToast(err.message, "error");
     } finally {
       setWeatherLoading(false);
     }
   }, []);
+
+  const handleWeatherSearch = (e) => {
+    e.preventDefault();
+    if (!weatherSearchInput || !weatherSearchInput.trim()) {
+      showToast("Please enter a city name to search.", "error");
+      return;
+    }
+    fetchLiveWeather(weatherSearchInput.trim());
+  };
 
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -65,6 +83,9 @@ function Dashboard() {
         weatherRes.json(),
         statusRes.ok ? statusRes.json() : null,
       ]);
+
+      setFarmersList(farmersData);
+      setCropsList(cropsData);
 
       setCounts({
         farmers: farmersData.length,
@@ -194,7 +215,7 @@ function Dashboard() {
                 </div>
               </div>
 
-              {/* Weather Records Metric */}
+              {/* Weather Locations Metric */}
               <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-xs hover:shadow-md transition">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
@@ -235,7 +256,7 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
               {/* Live Weather Card */}
               <div className="lg:col-span-7 bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-slate-900 text-white rounded-2xl p-6 shadow-lg flex flex-col justify-between relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/20 pb-4 mb-4 gap-3">
                   <div>
                     <span className="text-xs uppercase font-bold tracking-wider text-blue-200">
                       Live OpenWeather API
@@ -244,16 +265,22 @@ function Dashboard() {
                       📍 {liveWeather?.city || "Dehradun"}, {liveWeather?.country || "IN"}
                     </h2>
                   </div>
-                  <button
-                    onClick={() => fetchLiveWeather(liveWeather?.city || "Dehradun")}
-                    disabled={weatherLoading}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-xs transition cursor-pointer"
-                    title="Refresh Live Weather"
-                  >
-                    <svg className={`h-5 w-5 text-white ${weatherLoading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </button>
+                  <form onSubmit={handleWeatherSearch} className="flex items-center gap-2 max-w-xs w-full">
+                    <input
+                      type="text"
+                      placeholder="Search city (e.g. Mumbai)..."
+                      value={weatherSearchInput}
+                      onChange={(e) => setWeatherSearchInput(e.target.value)}
+                      className="bg-white/10 text-white placeholder-blue-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-white w-full border border-white/20"
+                    />
+                    <button
+                      type="submit"
+                      disabled={weatherLoading}
+                      className="bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-2 rounded-xl backdrop-blur-xs transition shrink-0 cursor-pointer"
+                    >
+                      {weatherLoading ? "..." : "Search"}
+                    </button>
+                  </form>
                 </div>
 
                 {weatherLoading ? (
@@ -321,6 +348,69 @@ function Dashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Crops Grouped by Farmer Section */}
+            <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-xs">
+              <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100 dark:border-gray-700/60">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                    <span>🌾</span> Crops Grouped by Farmer
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Direct mapping of monitored crops under their assigned farmer profiles
+                  </p>
+                </div>
+                <Link to="/crops">
+                  <Button variant="secondary" className="text-xs">
+                    Manage Crops &rarr;
+                  </Button>
+                </Link>
+              </div>
+
+              {farmersList.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No farmers registered in system.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {farmersList.map((farmer) => {
+                    const farmerCrops = cropsList.filter(
+                      (c) => c.farmer_id === farmer.id || c.farmer_name?.toLowerCase() === farmer.name?.toLowerCase()
+                    );
+                    return (
+                      <div
+                        key={farmer.id}
+                        className="bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700/70 rounded-xl p-5"
+                      >
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700/60 pb-3 mb-3">
+                          <h3 className="text-lg font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                            <span>🧑‍🌾</span> {farmer.name}
+                          </h3>
+                          <span className="text-xs text-gray-400 font-medium">{farmer.location}</span>
+                        </div>
+
+                        {farmerCrops.length === 0 ? (
+                          <p className="text-sm italic text-gray-400 dark:text-gray-500 py-1">
+                            No crops assigned
+                          </p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {farmerCrops.map((crop) => (
+                              <li key={crop.id} className="flex items-center justify-between text-sm">
+                                <span className="font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                                  <span className="text-emerald-500">•</span> {crop.crop_name}
+                                </span>
+                                <span className="text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/40 font-medium">
+                                  {crop.season}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Quick Actions & Recent Activity Grid */}

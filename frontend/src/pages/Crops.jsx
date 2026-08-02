@@ -6,6 +6,7 @@ import { API_BASE_URL } from "../config";
 
 function Crops() {
   const [crops, setCrops] = useState([]);
+  const [farmers, setFarmers] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Toast state
@@ -25,6 +26,7 @@ function Crops() {
     expected_harvest_date: "",
     area_in_acres: "",
     status: "Planted",
+    farmer_id: "",
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -39,6 +41,7 @@ function Crops() {
     expected_harvest_date: "",
     area_in_acres: "",
     status: "",
+    farmer_id: "",
   });
   const [editFormErrors, setEditFormErrors] = useState({});
 
@@ -52,6 +55,25 @@ function Crops() {
       setToast({ show: false, message: "", type: "success" });
     }, 3500);
   };
+
+  // Fetch farmers for dropdown
+  const fetchFarmers = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_BASE_URL}/api/farmers/`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFarmers(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch farmers list:", err);
+    }
+  }, []);
 
   // Fetch crops with useCallback
   const fetchCrops = useCallback(async (query = "") => {
@@ -79,6 +101,10 @@ function Crops() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchFarmers();
+  }, [fetchFarmers]);
 
   // Debounced search effect
   useEffect(() => {
@@ -115,6 +141,8 @@ function Crops() {
 
     if (!cropData.status) errors.status = "Status is required.";
 
+    if (!cropData.farmer_id) errors.farmer_id = "Farmer selection is required.";
+
     setErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -136,6 +164,7 @@ function Crops() {
         body: JSON.stringify({
           ...newCrop,
           area_in_acres: parseFloat(newCrop.area_in_acres),
+          farmer_id: parseInt(newCrop.farmer_id),
         }),
       });
 
@@ -154,6 +183,7 @@ function Crops() {
         expected_harvest_date: "",
         area_in_acres: "",
         status: "Planted",
+        farmer_id: "",
       });
       setFormErrors({});
       fetchCrops(searchQuery);
@@ -174,6 +204,7 @@ function Crops() {
       expected_harvest_date: crop.expected_harvest_date,
       area_in_acres: crop.area_in_acres.toString(),
       status: crop.status,
+      farmer_id: crop.farmer_id ? crop.farmer_id.toString() : "",
     });
     setEditFormErrors({});
     setIsEditModalOpen(true);
@@ -208,6 +239,7 @@ function Crops() {
           expected_harvest_date: editingCrop.expected_harvest_date,
           area_in_acres: parseFloat(editingCrop.area_in_acres),
           status: editingCrop.status,
+          farmer_id: parseInt(editingCrop.farmer_id),
         }),
       });
 
@@ -338,6 +370,12 @@ function Crops() {
                         <span className="font-semibold text-gray-400">ID:</span> #{crop.id}
                       </p>
                       <p>
+                        <span className="font-semibold text-gray-400">Assigned Farmer:</span>{" "}
+                        <span className="font-bold text-green-700 dark:text-green-400">
+                          {crop.farmer_name || "Unassigned"}
+                        </span>
+                      </p>
+                      <p>
                         <span className="font-semibold text-gray-400">Type:</span> {crop.crop_type}
                       </p>
                       <p>
@@ -394,6 +432,24 @@ function Crops() {
             onChange={(e) => handleInputChange("crop_name", e.target.value)}
             error={formErrors.crop_name}
           />
+
+          <div className="flex flex-col gap-2">
+            <label className="block text-sm font-medium text-inherit">Select Farmer *</label>
+            <select
+              value={newCrop.farmer_id}
+              onChange={(e) => handleInputChange("farmer_id", e.target.value)}
+              className="border p-2 rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+            >
+              <option value="">-- Select Farmer --</option>
+              {farmers.map((farmer) => (
+                <option key={farmer.id} value={farmer.id}>
+                  {farmer.name} ({farmer.location})
+                </option>
+              ))}
+            </select>
+            {formErrors.farmer_id && <p className="text-red-500 text-xs">{formErrors.farmer_id}</p>}
+          </div>
+
           <Input
             label="Crop Type *"
             placeholder="e.g. Cereal"
@@ -472,6 +528,24 @@ function Crops() {
             onChange={(e) => handleEditInputChange("crop_name", e.target.value)}
             error={editFormErrors.crop_name}
           />
+
+          <div className="flex flex-col gap-2">
+            <label className="block text-sm font-medium text-inherit">Select Farmer *</label>
+            <select
+              value={editingCrop.farmer_id}
+              onChange={(e) => handleEditInputChange("farmer_id", e.target.value)}
+              className="border p-2 rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-600"
+            >
+              <option value="">-- Select Farmer --</option>
+              {farmers.map((farmer) => (
+                <option key={farmer.id} value={farmer.id}>
+                  {farmer.name} ({farmer.location})
+                </option>
+              ))}
+            </select>
+            {editFormErrors.farmer_id && <p className="text-red-500 text-xs">{editFormErrors.farmer_id}</p>}
+          </div>
+
           <Input
             label="Crop Type *"
             placeholder="e.g. Cereal"

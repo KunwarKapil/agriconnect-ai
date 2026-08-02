@@ -27,9 +27,17 @@ def search_weather(location: str = Query(..., description="Location name to sear
 @router.get("/live", status_code=status.HTTP_200_OK)
 def get_live_weather(city: str = Query("Dehradun", description="City name to fetch live OpenWeather metrics for")):
     """Fetch real-time weather metrics from OpenWeather API with fallback."""
+    if not city or not city.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="City name cannot be empty."
+        )
+
+    city_clean = city.strip()
+
     if not settings.OPENWEATHER_API_KEY:
         return {
-            "city": city.title(),
+            "city": city_clean.title(),
             "country": "IN",
             "temperature": 28.5,
             "feels_like": 29.0,
@@ -44,7 +52,7 @@ def get_live_weather(city: str = Query("Dehradun", description="City name to fet
             "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
     
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city)}&appid={settings.OPENWEATHER_API_KEY}&units=metric"
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city_clean)}&appid={settings.OPENWEATHER_API_KEY}&units=metric"
     
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -52,7 +60,7 @@ def get_live_weather(city: str = Query("Dehradun", description="City name to fet
             data = json.loads(res.read().decode("utf-8"))
             
             return {
-                "city": data.get("name", city),
+                "city": data.get("name", city_clean),
                 "country": data.get("sys", {}).get("country", ""),
                 "temperature": round(data.get("main", {}).get("temp", 28.5), 1),
                 "feels_like": round(data.get("main", {}).get("feels_like", 29.0), 1),
@@ -66,23 +74,22 @@ def get_live_weather(city: str = Query("Dehradun", description="City name to fet
                 "weather_main": data.get("weather", [{}])[0].get("main", "Clear"),
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"City '{city_clean}' not found. Please enter a valid city name."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Weather service returned error code {e.code}."
+        )
     except Exception as e:
-        print(f"OpenWeather API fetch warning: {e}. Returning live metrics for {city}.")
-        return {
-            "city": city.title(),
-            "country": "IN",
-            "temperature": 28.5,
-            "feels_like": 29.0,
-            "humidity": 75,
-            "pressure": 1012,
-            "wind_speed": 3.6,
-            "visibility": 10.0,
-            "cloud_pct": 20,
-            "weather_description": "Sunny",
-            "weather_icon": "01d",
-            "weather_main": "Clear",
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
+        print(f"OpenWeather API fetch error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch weather data from service."
+        )
 
 @router.get("/{weather_id}", response_model=WeatherResponse, status_code=status.HTTP_200_OK)
 def get_weather(weather_id: int):

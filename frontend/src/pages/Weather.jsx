@@ -61,14 +61,18 @@ function Weather() {
 
   // Fetch Live Weather from OpenWeather API via FastAPI backend
   const fetchLiveWeather = useCallback(async (city = "Dehradun") => {
+    if (!city || !city.trim()) {
+      showToast("Please enter a city name to search.", "error");
+      return;
+    }
     setLiveLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city)}`, {
+      const res = await fetch(`${API_BASE_URL}/api/weather/live?city=${encodeURIComponent(city.trim())}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.detail || "Failed to fetch live weather data.");
       }
       const data = await res.json();
@@ -124,9 +128,11 @@ function Weather() {
 
   const handleLiveCitySubmit = (e) => {
     e.preventDefault();
-    if (liveCityInput.trim()) {
-      fetchLiveWeather(liveCityInput.trim());
+    if (!liveCityInput || !liveCityInput.trim()) {
+      showToast("Please enter a city name to search.", "error");
+      return;
     }
+    fetchLiveWeather(liveCityInput.trim());
   };
 
   const handleInputChange = (field, value) => {

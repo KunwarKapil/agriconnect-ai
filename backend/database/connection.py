@@ -106,8 +106,8 @@ def seed_database():
             db.farmers.counters.update_one({"_id": "farmers"}, {"$set": {"seq": 2}}, upsert=True)
             print("Default farmers seeded successfully.")
 
-        # Check if crops has old schema or is empty
-        has_old_crops = db.crops.collection.find_one({"name": {"$exists": True}}) is not None
+        # Check if crops has old schema without farmer_id or is empty
+        has_old_crops = db.crops.collection.find_one({"farmer_id": {"$exists": False}}) is not None
         if has_old_crops or db.crops.collection.count_documents({}) == 0:
             print("Seeding database with default crops...")
             db.crops.collection.delete_many({})
@@ -120,7 +120,8 @@ def seed_database():
                     "planting_date": "2026-11-15",
                     "expected_harvest_date": "2026-04-10",
                     "area_in_acres": 4.5,
-                    "status": "Growing"
+                    "status": "Growing",
+                    "farmer_id": 1
                 },
                 {
                     "id": 2,
@@ -130,7 +131,8 @@ def seed_database():
                     "planting_date": "2026-06-20",
                     "expected_harvest_date": "2026-10-30",
                     "area_in_acres": 5.0,
-                    "status": "Harvested"
+                    "status": "Harvested",
+                    "farmer_id": 2
                 }
             ]
             db.crops.collection.insert_many(seed_crops)
