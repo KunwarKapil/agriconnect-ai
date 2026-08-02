@@ -100,6 +100,23 @@ AI generates:
 
 ---
 
+# 🌐 Live Deployment
+
+## Live Frontend
+
+**Vercel:**  
+https://agriconnect-ai-gamma.vercel.app
+
+## Live Backend
+
+**Render API:**  
+https://agriconnect-ai-backend.onrender.com
+
+**API Documentation (Swagger):**  
+https://agriconnect-ai-backend.onrender.com/docs
+
+---
+
 # 🛠 Tech Stack
 
 ## Frontend
@@ -131,6 +148,10 @@ AI generates:
 - GitHub
 - VS Code
 - Figma
+
+## Deployment 
+- Vercel (Frontend)
+- Render (Backend)
 
 ---
 
