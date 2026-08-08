@@ -16,10 +16,10 @@ An AI-powered smart agriculture management platform designed to help farmers and
 
 | Key Screen | Preview |
 | :--- | :--- |
-| **Dashboard & System Health** | ![Dashboard & Analytics](./screenshots_temp/ss1_dashboard.png) |
-| **Farmer & Crop Management** | ![Farmer & Crop Management Flow](./screenshots_temp/ss2_create_flow.png) |
-| **Update & Delete Records** | ![Update & Delete Operations](./screenshots_temp/ss3_update_delete_flow.png) |
-| **AI Farm Advisor** | ![AI Farm Advisor Diagnostic Output](./screenshots_temp/ss4_ai_loading.png) |
+| **Home Landing Page** | ![AgriConnect AI Home Page](./screenshots/home.png) |
+| **Dashboard & System Health** | ![Dashboard & Analytics](./screenshots/dashboard.png) |
+| **Crop Management** | ![Crop Management Overview](./screenshots/crop-management.png) |
+| **AI Farm Advisor** | ![AI Farm Advisor Diagnostic Report](./screenshots/ai-advisor.png) |
 
 ---
 
@@ -284,7 +284,11 @@ agriconnect-ai/
 │   ├── package.json          # Node dependencies & scripts
 │   └── vite.config.js        # Vite bundler configuration
 │
-├── screenshots_temp/         # Embedded application screenshots
+├── screenshots/              # Embedded application screenshots
+│   ├── home.png
+│   ├── dashboard.png
+│   ├── crop-management.png
+│   └── ai-advisor.png
 └── README.md                 # Project documentation
 ```
 
